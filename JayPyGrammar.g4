@@ -14,8 +14,10 @@ fieldDeclaration
 
 methodDeclaration
  //: typeTypeOrVoid identifier formalParameters ('[' ']')*  methodBody
-    : typeTypeOrVoid identifier '(' formalParameters? ')' ('[' ']')*  methodBody
+    : typeTypeOrVoid identifier  formalParameters  ('[' ']')*  methodBody
     | VOID identifier formalParameters methodBody
+   // | typeTypeOrVoid identifier '(' ')' methodBody
+    | typeTypeOrVoid identifier LPAREN RPAREN methodBody
     ;
 
 methodBody
@@ -61,11 +63,11 @@ qualifiedNameList
     ;
 
 formalParameters
-    : '(' (
+    : LPAREN (
         receiverParameter?
         | receiverParameter (',' formalParameterList)?
         | formalParameterList?
-    ) ')'
+    ) RPAREN
     ;
 
 receiverParameter
@@ -91,19 +93,20 @@ qualifiedName
     ;
 
 literal
-    : integerLiteral
-    | floatLiteral
+   // : integerLiteral
+    : floatLiteral
     | CHAR_LITERAL
     | STRING_LITERAL
     | BOOL_LITERAL
     | NULL_LITERAL
+    | INT_LITERAL
     ;
 
 
-integerLiteral
-    : INTEGER_LITERAL
-    | DECIMAL_LITERAL
-    ;   
+//integerLiteral
+  //  : INTEGER_LITERAL
+   // | DECIMAL_LITERAL
+    //;
 
 floatLiteral
     : FLOAT_LITERAL
@@ -134,9 +137,12 @@ blockStatement
     ;
 
 localVariableDeclaration
-    : (VAR identifier '=' expression | typeType variableDeclarators '=' expression | typeType variableDeclarators)
+   : typeTypeOrVar identifier ('=' expression)?
+  // | typeType variableDeclarators ('=' variableInitializer)?
+   // : (VAR identifier '=' expression | typeType variableDeclarators '=' expression | typeType variableDeclarators)
     //| 'int' variableDeclarators '=' INTEGER_LITERAL)
-   ; 
+   ;
+
 
 identifier
     : IDENTIFIER
@@ -146,6 +152,11 @@ identifier
 typeIdentifier
     : IDENTIFIER
     ;
+
+printStatement: PRINT LPAREN expression RPAREN SEMI;
+
+printlnStatement: PRINTLN LPAREN expression RPAREN SEMI;
+
 statement
     : blockLabel = block
     //| ASSERT expression (':' expression)? ';'
@@ -161,7 +172,9 @@ statement
     | statementExpression = expression ';'
     | switchExpression ';'?
     | identifierLabel = identifier ':' statement
-    | FOR '(' typeTypeOrVar IDENTIFIER IN expression ')' statement
+    | FOR '(' typeTypeOrVar identifier IN expression ')' statement
+    | printStatement
+    | printlnStatement
     ;
 switchBlockStatementGroup
     : switchLabel+ blockStatement+
@@ -182,7 +195,7 @@ forControl
 
 forInit
     : localVariableDeclaration
-    | expressionList
+   // | expressionList
     ;
 
 enhancedForControl
@@ -218,9 +231,9 @@ expression
 
     | prefix = ('+' | '-' | '++' | '--' | '~' | '!') expression
 
+    | literal
 
-
-    | expression bop = ('*' | '/' | '%') expression
+    | expression bop = ('**'|'*' | '/' | '%' | 'DOT' ) expression
     | expression bop = ('+' | '-') expression
     | expression ('<' '<' | '>' '>' '>' | '>' '>') expression
     | expression bop = ('<=' | '>=' | '>' | '<') expression
@@ -311,6 +324,7 @@ arrayCreatorRest
     ;
 primitiveType
     : BOOLEAN
+    | INT
     | CHAR
     | BYTE
     | SHORT
@@ -320,7 +334,6 @@ primitiveType
     | DOUBLE
     | VOID
     | STRING
-    | INT
     ;
 
 typeArguments
@@ -344,6 +357,8 @@ CONST        : 'const';
 CONTINUE     : 'continue';
 DEFAULT      : 'default';
 DO           : 'do';
+PRINT        : 'print';
+PRINTLN      : 'println';
 DOUBLE       : 'double';
 ELSE         : 'else';
 /// nie wiem czy dodajemy enum,aENUM         : 'enum';
@@ -366,6 +381,9 @@ IN           : 'in';
 STRING       : 'String';
 VAR          : 'var';
 
+
+INT_LITERAL: Digits;
+
 DECIMAL_LITERAL_FOR_ARRAY: ([1-9] (Digits? | '_'+ Digits)) [lL]?;
 DECIMAL_LITERAL : ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
 HEX_LITERAL     : '0' [xX] [0-9a-fA-F] ([0-9a-fA-F_]* [0-9a-fA-F])? [lL]?;
@@ -383,7 +401,9 @@ CHAR_LITERAL: '\'' (~['\\\r\n] | EscapeSequence) '\'';
 
 STRING_LITERAL: '"' (~["\\\r\n] | EscapeSequence)* '"';
 
-INTEGER_LITERAL: DecimalDigits;
+
+
+//INTEGER_LITERAL: DecimalDigits;
 
 NULL_LITERAL: 'null';
 

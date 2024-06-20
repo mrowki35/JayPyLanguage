@@ -5,13 +5,17 @@ if "." in __name__:
 else:
     from JayPyGrammarParser import JayPyGrammarParser
 
-from VariablesList import VariablesList
-
 # This class defines a complete listener for a parse tree produced by JayPyGrammarParser.
 class JayPyGrammarListener(ParseTreeListener):
     def __init__(self):
-        self.my_variable_list = VariablesList()
-
+        self.function_dictionary={}
+        self.function_return_type_dictionary={}
+        self.function_arguments_dictionary={}
+        self.function_ctx_dictionary={}
+        self.function_overloaded={}
+        self.function_arguments_overloaded_dictionary={}
+        self.function_overloaded_return_type_dictionary={}
+        self.overloaded_functions_names=[]
 
     # Enter a parse tree produced by JayPyGrammarParser#program.
     def enterProgram(self, ctx:JayPyGrammarParser.ProgramContext):
@@ -33,6 +37,26 @@ class JayPyGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by JayPyGrammarParser#methodDeclaration.
     def enterMethodDeclaration(self, ctx:JayPyGrammarParser.MethodDeclarationContext):
+        if "(" in ctx.getText() and ")" in ctx.getText():
+           # print(ctx.getText())
+            if ctx.identifier().getText() not in self.function_dictionary and ctx.identifier().getText() not in self.overloaded_functions_names:
+                self.function_dictionary.update({ctx.identifier().getText():ctx.methodBody()})
+                self.function_arguments_dictionary.update({ctx.identifier().getText():ctx.formalParameters()})
+                self.function_return_type_dictionary.update({ctx.identifier().getText():ctx.typeTypeOrVoid()})
+                self.function_ctx_dictionary.update({ctx.identifier().getText():ctx})
+            else:
+                removed_value_fun_ctx = self.function_ctx_dictionary.pop(ctx.identifier().getText(), None)
+                removed_value_arguments =self.function_arguments_dictionary.pop(ctx.identifier().getText(), None)
+                removed_value_return_type = self.function_return_type_dictionary.pop(ctx.identifier().getText(), None)
+                removed_value_function_dictionary =  self.function_dictionary.pop(ctx.identifier().getText(), None)
+                for i in removed_value_arguments:
+                    pass
+                parameter_list=[]
+                for i in ctx.formalParameters().formalParameterList().formalParameter():
+                    parameter_list.append(i.typeType().getText())
+
+
+
         pass
 
     # Exit a parse tree produced by JayPyGrammarParser#methodDeclaration.
@@ -87,36 +111,7 @@ class JayPyGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by JayPyGrammarParser#variableDeclarator.
     def enterVariableDeclarator(self, ctx:JayPyGrammarParser.VariableDeclaratorContext):
-        #print(ctx.getChild(0).getText())
-        variable_name=ctx.variableDeclaratorId().getText()
-        variable_type=ctx.parentCtx.parentCtx.typeType().getText()
-        #print(ctx.parentCtx.__class__.__name__) -> VariableDeclaratorsContext
-        try:
-            variable_value=ctx.variableInitializer().getText()
-        except (AttributeError):
-            variable_value=None
-        if variable_value==None:
-            self.my_variable_list.variablesList.append({variable_name:[variable_value,variable_type]})
-        elif variable_type=="float" or variable_type=='double':
-            #self.my_variable_list.variablesList.append({variable_name:Float(variable_name,variable_value)})
-            self.my_variable_list.variablesList.append({variable_name:[float(variable_value),variable_type]})
-        elif variable_type in ('int','long','short'):
-            self.my_variable_list.variablesList.append({variable_name:[int(variable_value),variable_type]})
-        elif variable_type in ("String","string",'char'):
-            self.my_variable_list.variablesList.append({variable_name:[variable_value.strip('"'),variable_type]})
-        elif variable_type=='boolean' and variable_value in ('false','False','0'):
-            self.my_variable_list.variablesList.append({variable_name:[False,variable_type]})
-        elif variable_type=='boolean':
-            self.my_variable_list.variablesList.append({variable_name:[bool(variable_value),variable_type]})
-        else:
-            self.my_variable_list.variablesList.append({variable_name:[variable_value,variable_type]})
-        
-        
-        #self.my_variable_list.variablesList.append({variable_name,variable_value})
-        #print(ctx.variableDeclaratorId().getText())
-       # print(ctx.variableInitializer().getText())
         pass
-
 
     # Exit a parse tree produced by JayPyGrammarParser#variableDeclarator.
     def exitVariableDeclarator(self, ctx:JayPyGrammarParser.VariableDeclaratorContext):
@@ -222,15 +217,6 @@ class JayPyGrammarListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by JayPyGrammarParser#integerLiteral.
-    def enterIntegerLiteral(self, ctx:JayPyGrammarParser.IntegerLiteralContext):
-        pass
-
-    # Exit a parse tree produced by JayPyGrammarParser#integerLiteral.
-    def exitIntegerLiteral(self, ctx:JayPyGrammarParser.IntegerLiteralContext):
-        pass
-
-
     # Enter a parse tree produced by JayPyGrammarParser#floatLiteral.
     def enterFloatLiteral(self, ctx:JayPyGrammarParser.FloatLiteralContext):
         pass
@@ -321,6 +307,24 @@ class JayPyGrammarListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by JayPyGrammarParser#printStatement.
+    def enterPrintStatement(self, ctx:JayPyGrammarParser.PrintStatementContext):
+        pass
+
+    # Exit a parse tree produced by JayPyGrammarParser#printStatement.
+    def exitPrintStatement(self, ctx:JayPyGrammarParser.PrintStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by JayPyGrammarParser#printlnStatement.
+    def enterPrintlnStatement(self, ctx:JayPyGrammarParser.PrintlnStatementContext):
+        pass
+
+    # Exit a parse tree produced by JayPyGrammarParser#printlnStatement.
+    def exitPrintlnStatement(self, ctx:JayPyGrammarParser.PrintlnStatementContext):
+        pass
+
+
     # Enter a parse tree produced by JayPyGrammarParser#statement.
     def enterStatement(self, ctx:JayPyGrammarParser.StatementContext):
         pass
@@ -388,7 +392,6 @@ class JayPyGrammarListener(ParseTreeListener):
     def enterExpressionList(self, ctx:JayPyGrammarParser.ExpressionListContext):
         pass
 
-
     # Exit a parse tree produced by JayPyGrammarParser#expressionList.
     def exitExpressionList(self, ctx:JayPyGrammarParser.ExpressionListContext):
         pass
@@ -405,45 +408,6 @@ class JayPyGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by JayPyGrammarParser#expression.
     def enterExpression(self, ctx:JayPyGrammarParser.ExpressionContext):
-       # print(ctx.getText())
-        if ctx.ASSIGN() != None:
-            for dictionary in self.my_variable_list.variablesList:
-                if dictionary.get(ctx.expression()[0].getText())!=None:
-                    dictionary.get(ctx.expression()[0].getText())[0]=ctx.expression()[1].getText()
-        elif ctx.ADD_ASSIGN() !=None:
-            pass
-        elif ctx.SUB_ASSIGN() !=None:
-            pass
-        elif ctx.MUL_ASSIGN() !=None:
-            pass
-        elif ctx.DIV_ASSIGN() !=None:
-            pass
-        elif ctx.ADD() !=None:
-            print(ctx.getText())
-            print(ctx.expression()[0].getText())
-            for dictionary in self.my_variable_list.variablesList:
-                if dictionary.get(ctx.expression()[0].getText())!=None:
-                    #print(dictionary.get(ctx.expression()[0].getText())[0])
-                   # print("here")
-                    value=dictionary.get(ctx.expression()[0].getText())[0]+float(ctx.expression()[1].getText())
-                   # value=dictionary.get(ctx.expression()[0].getText())[0]+float(ctx.expression()[1].getText())
-                   #=dictionary.get(ctx.expression()[0].getText())[0]
-                    print(value)
-        elif ctx.SUB() !=None:
-            pass
-        elif ctx.INC() !=None:
-            pass
-        elif ctx.DEC() !=None:
-            pass
-        elif ctx.MUL() !=None:
-            pass
-        elif ctx.DIV() !=None:
-            pass
-        elif ctx.MOD() !=None:
-            pass
-        elif ctx.MUL() !=None:
-            pass        
-
         pass
 
     # Exit a parse tree produced by JayPyGrammarParser#expression.
